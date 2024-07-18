@@ -1,22 +1,44 @@
 package main
 
 import (
-	"github.com/orchestd/nats-redirect/internal/client"
-	"github.com/orchestd/nats-redirect/internal/config"
-	"github.com/orchestd/nats-redirect/internal/redirector"
-	"github.com/orchestd/nats-redirect/logger"
+	"github.com/orchestd/dependencybundler/bundler"
 )
 
-func main() {
-	lgr := logger.New()
+type Configuration struct {
+	//credentialsConfiguration.CredentialsConfiguration
+	//envConfiguration.EnvConfiguration
+	//monitoringConfiguration.MonitoringConfiguration
+	//logConfiguration.LogConfiguration
+}
 
-	if cnf, err := config.LoadConfig("test.json"); err != nil {
-		lgr.Error("failed loading conf file %s", err.Error())
-	} else if clnt, err := client.New(lgr, cnf); err != nil {
-		lgr.Error("failed setting new client %s", err.Error())
-	} else if gw, err := redirector.New(lgr, cnf, clnt); err != nil {
-		lgr.Error("failed creating new redirector %s", err.Error())
-	} else {
-		gw.Start()
-	}
+var appConf Configuration
+
+func main() {
+
+	bundler.CreateApplication(&appConf, http.InitHandlers, deps()...)
+
+	//app := fx.New(
+	//	bundler.CredentialsFxOption(),
+	//	bundler.ConfigFxOption(confStruct),
+	//	bundler.LoggerFxOption(),
+	//	bundler.TransportFxOption(monolithConstructor...),
+	//	bundler.CacheTraceMiddlewareOption(),
+	//	bundler.TracerFxOption(),
+	//	bundler.DebugFxOption(),
+	//	bundler.MonitoringFxOption(),
+	//)
+	//
+	//app.Run()
+
+	//lgr := logger.New()
+
+	//if cnf, err := rules.Load("test.json"); err != nil {
+	//	lgr.Error("failed loading conf file %s", err.Error())
+	//} else if clnt, err := client.New(lgr, cnf); err != nil {
+	//	lgr.Error("failed setting new client %s", err.Error())
+	//} else if gw, err := redirector.New(lgr, cnf, clnt); err != nil {
+	//	lgr.Error("failed creating new redirector %s", err.Error())
+	//} else {
+	//	gw.Start()
+	//}
 }

@@ -3,14 +3,14 @@ package client
 import (
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"github.com/orchestd/nats-redirect/internal/config"
+	"github.com/orchestd/nats-redirect/internal/rules"
 	"github.com/orchestd/nats-redirect/logger"
 	"time"
 )
 
 type Client struct {
 	connections nConnections
-	cnf         config.Config
+	cnf         rules.Config
 	logger      *logger.Logger
 }
 
@@ -41,7 +41,7 @@ func (c *Client) Forward() error {
 	return nil
 }
 
-func (c *Client) forward(forward config.Forward) error {
+func (c *Client) forward(forward rules.Forward) error {
 	if source, ok := c.connections.findIndex(forward.Source); !ok {
 		return ErrSourceServerNotFound
 	} else if target, ok := c.connections.findIndex(forward.Target); !ok {
@@ -56,7 +56,7 @@ func (c *Client) forward(forward config.Forward) error {
 	return nil
 }
 
-func (c *Client) listenAndForward(source, target int, reqType config.RequestType, channel string) error {
+func (c *Client) listenAndForward(source, target int, reqType rules.RequestType, channel string) error {
 	var handler nats.MsgHandler
 	sourceUrl := c.connections[source].ConnectedUrl()
 	targetUrl := c.connections[target].ConnectedUrl()
@@ -64,7 +64,7 @@ func (c *Client) listenAndForward(source, target int, reqType config.RequestType
 	logPrefix := fmt.Sprintf("source=%s target=%s channel=%s type=%s ", sourceUrl, targetUrl, channel, string(reqType))
 
 	switch reqType {
-	case config.PUB:
+	case rules.PUB:
 		handler = func(msg *nats.Msg) {
 			c.logger.Debug(logPrefix+"msg=%s", msg.Data)
 			if err := c.connections[target].Publish(channel, msg.Data); err != nil {
@@ -72,7 +72,7 @@ func (c *Client) listenAndForward(source, target int, reqType config.RequestType
 				// todo need to return err somehow
 			}
 		}
-	case config.REQ:
+	case rules.REQ:
 		handler = func(msg *nats.Msg) {
 			c.logger.Debug(logPrefix+"msg=%s", msg.Data)
 			if resp, err := c.connections[target].Request(channel, msg.Data, 5*time.Second); err != nil {
@@ -91,7 +91,7 @@ func (c *Client) listenAndForward(source, target int, reqType config.RequestType
 	return err
 }
 
-func New(log *logger.Logger, cnf config.Config) (*Client, error) {
+func New(log *logger.Logger, cnf rules.Config) (*Client, error) {
 	var connections []*nats.Conn
 	for _, server := range cnf.Servers {
 		conn, err := nats.Connect(server.GetUrl(), server.GetConnection().(nats.Option))

@@ -1,4 +1,4 @@
-package config
+package forwardingrules
 
 import (
 	"encoding/json"
@@ -10,8 +10,8 @@ import (
 	"strings"
 )
 
-type Config struct {
-	Servers  Servers  `json:"servers"`
+type Rules struct {
+	//Servers  Servers  `json:"servers"`
 	Forwards Forwards `json:"forwards"`
 }
 
