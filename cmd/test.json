@@ -4,7 +4,7 @@
       "url": "nats://localhost:4222",
       "connection": {
         "username": "alice",
-        "password": "foo"
+        "password": "fooo"
       }
     },
     {
