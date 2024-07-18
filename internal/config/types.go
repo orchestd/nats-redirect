@@ -52,7 +52,6 @@ func (s *ServerConnectionDetails) GetConnection() interface{} {
 }
 
 func (s *ServerConnectionDetails) UnmarshalJSON(data []byte) error {
-	// Create a temporary struct to unmarshal into
 	type Alias ServerConnectionDetails
 	aux := &struct {
 		Connection interface{} `json:"connection"`
@@ -61,7 +60,6 @@ func (s *ServerConnectionDetails) UnmarshalJSON(data []byte) error {
 		Alias: (*Alias)(s),
 	}
 
-	// Unmarshal into the temporary struct
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}

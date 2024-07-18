@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"github.com/nats-io/nats.go"
 	"github.com/orchestd/nats-redirect/internal/config"
 	"github.com/orchestd/nats-redirect/logger"
@@ -60,25 +61,25 @@ func (c *Client) listenAndForward(source, target int, reqType config.RequestType
 	sourceUrl := c.connections[source].ConnectedUrl()
 	targetUrl := c.connections[target].ConnectedUrl()
 
-	//logPreFix := func(sourceUrl, targetUrl, channel string, reqType requestType) string {
-	//
-	//}
+	logPrefix := fmt.Sprintf("source=%s target=%s channel=%s type=%s ", sourceUrl, targetUrl, channel, string(reqType))
 
 	switch reqType {
 	case config.PUB:
 		handler = func(msg *nats.Msg) {
-			c.logger.Debug("source=%s target=%s channel=%s type=%s msg=%s", sourceUrl, targetUrl, channel, config.PUB, msg.Data)
+			c.logger.Debug(logPrefix+"msg=%s", msg.Data)
 			if err := c.connections[target].Publish(channel, msg.Data); err != nil {
-				c.logger.Error("source-url=%s target-url=%s publish err %s", c.connections[source].ConnectedUrl(), c.connections[target].ConnectedUrl(), err.Error())
+				c.logger.Error(logPrefix+"publish err: %s", err.Error())
+				// todo need to return err somehow
 			}
 		}
 	case config.REQ:
 		handler = func(msg *nats.Msg) {
-			c.logger.Debug("source=%s target=%s channel=%s type=%s msg=%s", sourceUrl, targetUrl, channel, config.REQ, msg.Data)
+			c.logger.Debug(logPrefix+"msg=%s", msg.Data)
 			if resp, err := c.connections[target].Request(channel, msg.Data, 5*time.Second); err != nil {
-				c.logger.Error("source-url=%s target-url=%s request err %s", c.connections[source].ConnectedUrl(), c.connections[target].ConnectedUrl(), err.Error())
+				c.logger.Error(logPrefix+"request err: %s", err.Error())
+				// todo need to return err somehow
 			} else if err = msg.RespondMsg(resp); err != nil {
-				c.logger.Error("source-url=%s target-url=%s response err %s", c.connections[source].ConnectedUrl(), c.connections[target].ConnectedUrl(), err.Error())
+				c.logger.Error(logPrefix+"reply err: %s", err.Error())
 			}
 		}
 	default:
@@ -86,11 +87,11 @@ func (c *Client) listenAndForward(source, target int, reqType config.RequestType
 	}
 
 	_, err := c.connections[source].Subscribe(channel, handler)
-	c.logger.Debug("source=%s target=%s channel=%s type=%s", sourceUrl, targetUrl, channel, string(reqType))
+	c.logger.Debug(logPrefix)
 	return err
 }
 
-func New(log *logger.Logger, cnf config.Config) (config.Client, error) {
+func New(log *logger.Logger, cnf config.Config) (*Client, error) {
 	var connections []*nats.Conn
 	for _, server := range cnf.Servers {
 		conn, err := nats.Connect(server.GetUrl(), server.GetConnection().(nats.Option))

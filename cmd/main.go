@@ -8,16 +8,14 @@ import (
 )
 
 func main() {
-	// logger
 	lgr := logger.New()
 
-	// load file
 	if cnf, err := config.LoadConfig("test.json"); err != nil {
-		lgr.Error("niii %s", err.Error())
+		lgr.Error("failed loading conf file %s", err.Error())
 	} else if clnt, err := client.New(lgr, cnf); err != nil {
-		lgr.Error("nii %s", err.Error())
+		lgr.Error("failed setting new client %s", err.Error())
 	} else if gw, err := redirector.New(lgr, cnf, clnt); err != nil {
-		lgr.Error("ni %s", err.Error())
+		lgr.Error("failed creating new redirector %s", err.Error())
 	} else {
 		gw.Start()
 	}

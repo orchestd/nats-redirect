@@ -1,18 +1,19 @@
 package redirector
 
 import (
+	"github.com/orchestd/nats-redirect/internal/client"
 	"github.com/orchestd/nats-redirect/internal/config"
 	"github.com/orchestd/nats-redirect/logger"
 	"github.com/orchestd/nats-redirect/utils"
 )
 
 type Redirector struct {
-	client config.Client
+	client *client.Client
 	config config.Config
 	logger *logger.Logger
 }
 
-func New(logger *logger.Logger, cfg config.Config, client config.Client) (*Redirector, error) {
+func New(logger *logger.Logger, cfg config.Config, client *client.Client) (*Redirector, error) {
 	return &Redirector{
 		client: client,
 		config: cfg,
