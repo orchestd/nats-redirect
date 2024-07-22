@@ -2,33 +2,21 @@ package main
 
 import (
 	"github.com/orchestd/dependencybundler/bundler"
+	"github.com/orchestd/dependencybundler/depBundler"
+	"github.com/orchestd/nats-redirect/api/server/http"
 )
 
 type Configuration struct {
-	//credentialsConfiguration.CredentialsConfiguration
-	//envConfiguration.EnvConfiguration
-	//monitoringConfiguration.MonitoringConfiguration
-	//logConfiguration.LogConfiguration
+	depBundler.DependencyBundlerConfiguration
+	ServersInSecret interface{} `json:"serversInSecret"`
+	RulesFilePath   string      `json:"rulesFilePath"`
+	//ServersInSecret interface{} `json:"serversInSecret"`
 }
 
 var appConf Configuration
 
 func main() {
-
 	bundler.CreateApplication(&appConf, http.InitHandlers, deps()...)
-
-	//app := fx.New(
-	//	bundler.CredentialsFxOption(),
-	//	bundler.ConfigFxOption(confStruct),
-	//	bundler.LoggerFxOption(),
-	//	bundler.TransportFxOption(monolithConstructor...),
-	//	bundler.CacheTraceMiddlewareOption(),
-	//	bundler.TracerFxOption(),
-	//	bundler.DebugFxOption(),
-	//	bundler.MonitoringFxOption(),
-	//)
-	//
-	//app.Run()
 
 	//lgr := logger.New()
 

@@ -3,8 +3,10 @@ package main
 import (
 	"github.com/orchestd/dependencybundler/bundler"
 	"github.com/orchestd/dependencybundler/depBundler/middlewares/cors"
+	"github.com/orchestd/nats-redirect/api/server/monolith"
 	"github.com/orchestd/nats-redirect/application/defaultApp"
-	"github.com/orchestd/nats-redirect/infrastucure/forwardingrules"
+	"github.com/orchestd/nats-redirect/infrastucure/natsredirector"
+	"github.com/orchestd/nats-redirect/infrastucure/reader"
 	"go.uber.org/fx"
 )
 
@@ -15,8 +17,9 @@ func deps() []interface{} {
 func internalDeps() []interface{} {
 	return []interface{}{
 		defaultApp.NewNatsRedirectApp,
-		forwardingrules.New,
-		//messaging.NewMessagingRepo,
+		monolith.NewNatsRedirectInterfaceInterface,
+		natsredirector.NewMessagingRedirector,
+		reader.NewReader,
 	}
 }
 
