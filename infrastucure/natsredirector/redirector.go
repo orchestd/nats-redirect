@@ -49,7 +49,7 @@ func (m *natsRedirector) Forward(rules []forwardingrules.Rule) error {
 	for _, forwardRule := range rules {
 		ctx := context.Background()
 		if err := m.forward(ctx, forwardRule); err != nil {
-			m.logger.Error(ctx, "shit %s", err.Error())
+			m.logger.Error(ctx, "unable to forward %+v, err: %s", forwardRule, err.Error())
 		}
 	}
 

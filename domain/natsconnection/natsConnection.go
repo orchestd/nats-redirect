@@ -18,8 +18,6 @@ type Credentials interface {
 	ConnectOption() nats.Option
 }
 
-const ForwardRulesKey = "forwardRules"
-
 var userPassValidation = []string{"username", "password"}
 var jwtValidation = []string{"jwt", "seed"}
 

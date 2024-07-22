@@ -26,6 +26,5 @@ func internalDeps() []interface{} {
 func externalDeps() []interface{} {
 	return []interface{}{
 		fx.Annotated{Group: bundler.RouterInterceptors, Target: cors.CorsMiddleware},
-		//natsio.NewNatsServiceWithBasicAuth,
 	}
 }
