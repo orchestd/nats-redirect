@@ -13,9 +13,10 @@ import (
 )
 
 type natsRedirector struct {
-	connections connections
-	conf        configuration.Config
-	logger      log.Logger
+	connections      connections
+	conf             configuration.Config
+	logger           log.Logger
+	defaultTimeoutMS int
 }
 
 const (
@@ -27,7 +28,11 @@ const (
 type connections []*nats.Conn
 
 func NewMessagingRedirector(logger log.Logger, conf configuration.Config) natsredirector.Redirector {
-	return &natsRedirector{connections: make(connections, 0), logger: logger, conf: conf}
+	defaultTimeoutMS, err := conf.Get("defaultNatsRequestTimeoutMS").Int()
+	if err != nil {
+		panic("failed loading defaultNatsRequestTimeoutMS. " + err.Error())
+	}
+	return &natsRedirector{connections: make(connections, 0), logger: logger, conf: conf, defaultTimeoutMS: defaultTimeoutMS}
 }
 
 func (m *natsRedirector) ConnectServers(ctx context.Context, serverConnections []natsconnection.ConnectionCredentials) error {
@@ -63,8 +68,17 @@ func (m *natsRedirector) forward(ctx context.Context, forwardRule forwardingrule
 	} else if target, ok := m.connections.findIndex(forwardRule.Target); !ok {
 		return ErrTargetServerNotFound
 	} else {
+		var timeoutDuration time.Duration
+
+		if forwardRule.Type == REQ {
+			if forwardRule.TimeoutMS == 0 {
+				forwardRule.TimeoutMS = m.defaultTimeoutMS
+			}
+			timeoutDuration = time.Duration(forwardRule.TimeoutMS) * time.Millisecond
+		}
+
 		for _, subject := range forwardRule.Subjects {
-			if err := m.listenAndForward(ctx, source, target, forwardRule.Type, subject); err != nil {
+			if err := m.listenAndForward(ctx, source, target, forwardRule.Type, subject, timeoutDuration); err != nil {
 				return err
 			}
 		}
@@ -72,7 +86,7 @@ func (m *natsRedirector) forward(ctx context.Context, forwardRule forwardingrule
 	return nil
 }
 
-func (m *natsRedirector) listenAndForward(ctx context.Context, source, target int, reqType, subject string) error {
+func (m *natsRedirector) listenAndForward(ctx context.Context, source, target int, reqType, subject string, timeoutDuration time.Duration) error {
 	var handler nats.MsgHandler
 
 	sourceUrl := m.connections[source].ConnectedUrl()
@@ -95,7 +109,7 @@ func (m *natsRedirector) listenAndForward(ctx context.Context, source, target in
 	case REQ:
 		handler = func(msg *nats.Msg) {
 			m.logger.Debug(ctx, logPrefix(msg.Subject)+"msg=%s", msg.Data)
-			if resp, err := m.connections[target].Request(msg.Subject, msg.Data, 5*time.Second); err != nil {
+			if resp, err := m.connections[target].Request(msg.Subject, msg.Data, timeoutDuration); err != nil {
 				m.logger.Error(ctx, logPrefix(msg.Subject)+"request err: %s", err.Error())
 				// todo need to return err somehow
 			} else if err = msg.RespondMsg(resp); err != nil {

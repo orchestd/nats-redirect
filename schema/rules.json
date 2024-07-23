@@ -1,0 +1,15 @@
+[
+  {
+    "type": "request",
+    "source": "nats://localhost:4222",
+    "target": "nats://localhost:5222",
+    "subjects": ["test.*"],
+    "timeoutMS": 10000
+  },
+  {
+    "type": "publish",
+    "source": "nats://localhost:4222",
+    "target": "nats://localhost:5222",
+    "subjects": ["test.ABC.T1", "test.*.T2"]
+  }
+]
