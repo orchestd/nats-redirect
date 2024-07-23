@@ -7,6 +7,6 @@ import (
 )
 
 type Redirector interface {
-	ConnectServers(ctx context.Context, servers []natsconnection.ConnectionCredentials) error
-	Forward(rules []forwardingrules.Rule) error
+	ConnectServers(ctx context.Context, serverConnections []natsconnection.ConnectionCredentials) error
+	ListenAndForward(rules []forwardingrules.Rule) error
 }

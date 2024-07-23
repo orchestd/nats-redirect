@@ -2,6 +2,8 @@ module github.com/orchestd/nats-redirect
 
 go 1.22.1
 
+replace github.com/orchestd/configurations v0.15.0 => ../../github.com/orchestd/configurations
+
 require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nats-io/nats.go v1.36.0

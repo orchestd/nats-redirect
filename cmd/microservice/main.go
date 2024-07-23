@@ -8,8 +8,7 @@ import (
 
 type Configuration struct {
 	depBundler.DependencyBundlerConfiguration
-	ServersInSecret interface{} `json:"serversInSecret"`
-	RulesFilePath   string      `json:"rulesFilePath"`
+	RulesFilePath string `json:"rulesFilePath"`
 }
 
 var appConf Configuration

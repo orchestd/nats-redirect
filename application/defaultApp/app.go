@@ -18,23 +18,20 @@ type natsRedirectApp struct {
 	redirector natsredirector.Redirector
 }
 
-const serversInSecretKey = "serversInSecret" // todo remove from here
-
 func NewNatsRedirectApp(logger log.Logger, conf configuration.Config, redirector natsredirector.Redirector, credentials credentials.CredentialsGetter, reader reader.Reader) application.NewNatsRedirectApp {
 	ctx := context.Background()
-	var serverConns []natsconnection.ConnectionCredentials
+	var serverConnections []natsconnection.ConnectionCredentials
 	var rules []forwardingrules.Rule
-	//natsUser := credentials.GetCredentials().NatsUser
 
-	if err := conf.Get(serversInSecretKey).Unmarshal(&serverConns); err != nil {
-		panic(err)
-	} else if err = redirector.ConnectServers(ctx, serverConns); err != nil {
+	if err := credentials.GetCredentials().GetNatsServerConnections(&serverConnections); err != nil {
 		panic(err)
 	} else if rulesFilePath, err := conf.Get("rulesFilePath").String(); err != nil {
 		panic(err)
 	} else if err = reader.ReadFile(rulesFilePath, &rules); err != nil {
 		panic(err)
-	} else if err = redirector.Forward(rules); err != nil {
+	} else if err = redirector.ConnectServers(ctx, serverConnections); err != nil {
+		panic(err)
+	} else if err = redirector.ListenAndForward(rules); err != nil {
 		panic(err)
 	}
 
